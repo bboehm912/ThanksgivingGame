@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8a3c20">
+  <title>Gobble &amp; Guess! — Thanksgiving Movie Challenge</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #33251d;
+      --muted: #715c4e;
+      --cream: #fff8e9;
+      --paper: #fffdf7;
+      --orange: #bd542b;
+      --orange-dark: #8a3c20;
+      --gold: #f0b943;
+      --green: #466c4b;
+      --red: #a63e36;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 28px 16px 40px;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 10% 12%, #f8d994 0 5px, transparent 6px),
+        radial-gradient(ellipse at 90% 30%, #e8ad75 0 5px, transparent 6px),
+        linear-gradient(145deg, #f8ead0, #f5d9b7 55%, #f3e8cd);
+      background-size: 46px 46px, 58px 58px, auto;
+    }
+
+    button { font: inherit; }
+
+    .wrap { width: min(760px, 100%); margin: 0 auto; }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--orange-dark);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .season-tag {
+      padding: 7px 11px;
+      border: 1px solid #d6a76c;
+      border-radius: 999px;
+      background: #fff9ebc9;
+      letter-spacing: .06em;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 2px solid #9a552f;
+      border-radius: 28px;
+      background: var(--paper);
+      box-shadow: 0 14px 0 #9c572d26, 0 24px 48px #6b341c24;
+    }
+
+    .hero {
+      position: relative;
+      padding: 32px 28px 26px;
+      color: #fffaf0;
+      text-align: center;
+      background: var(--orange-dark);
+      background-image: linear-gradient(135deg, #a84627, #74351f);
+    }
+
+    .hero::before, .hero::after {
+      position: absolute;
+      top: 20px;
+      font-size: 2rem;
+      content: "🍂";
+    }
+    .hero::before { left: 22px; transform: rotate(-24deg); }
+    .hero::after { right: 22px; transform: rotate(24deg) scaleX(-1); }
+
+    .turkey { margin: 0 0 4px; font-size: 2.4rem; }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 7vw, 3.35rem);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+
+    .subtitle { margin: 12px 0 0; color: #ffe8bd; font-size: 1rem; }
+
+    .content { padding: 26px clamp(18px, 5vw, 40px) 32px; }
+
+    .intro { text-align: center; }
+    .intro p { max-width: 520px; margin: 0 auto 18px; color: var(--muted); line-height: 1.55; }
+
+    .movie-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin: 18px 0 24px;
+    }
+
+    .movie-pill {
+      padding: 8px 12px;
+      border: 1px solid #e4c69d;
+      border-radius: 999px;
+      background: #fff4df;
+      color: #65412e;
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .primary, .secondary {
+      min-height: 48px;
+      padding: 12px 22px;
+      border: 0;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    .primary {
+      color: white;
+      background: var(--orange);
+      box-shadow: 0 4px 0 #87381e;
+    }
+    .primary:hover { background: #a94726; transform: translateY(-2px); }
+    .primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #87381e; }
+
+    .secondary {
+      color: var(--orange-dark);
+      border: 1px solid #d7b78e;
+      background: #fff7e8;
+    }
+    .secondary:hover { background: #ffedce; }
+
+    button:focus-visible {
+      outline: 3px solid #245f79;
+      outline-offset: 3px;
+    }
+
+    [hidden] { display: none !important; }
+
+    .game-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 800;
+    }
+
+    .score-badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #63431d;
+      background: #fff0c8;
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      height: 10px;
+      margin-bottom: 25px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eee3d2;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #e59c35, #bb4f2b);
+      transition: width .3s ease;
+    }
+
+    .question-kicker {
+      margin: 0 0 9px;
+      color: var(--orange);
+      font-size: .76rem;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0 0 20px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.35rem, 5vw, 1.9rem);
+      line-height: 1.25;
+    }
+
+    .answers { display: grid; gap: 10px; }
+
+    .answer {
+      width: 100%;
+      min-height: 52px;
+      padding: 13px 15px;
+      border: 2px solid #e8d8c0;
+      border-radius: 14px;
+      color: var(--ink);
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+    .answer:hover:not(:disabled) {
+      border-color: #c97b43;
+      background: #fff8eb;
+      transform: translateY(-1px);
+    }
+    .answer:disabled { cursor: default; }
+    .answer.correct { border-color: #638968; background: #eaf5e9; }
+    .answer.incorrect { border-color: #c66a5e; background: #fff0ed; }
+
+    .feedback {
+      min-height: 28px;
+      margin: 15px 0 8px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .feedback.good { color: var(--green); }
+    .feedback.try-again { color: var(--red); }
+
+    .game-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+
+    .result { padding: 12px 0 4px; text-align: center; }
+    .result-emoji { margin: 0 0 6px; font-size: 3rem; }
+    .result h2 { margin-bottom: 10px; }
+    .result-copy { max-width: 490px; margin: 0 auto 22px; color: var(--muted); line-height: 1.6; }
+    .result-score {
+      display: inline-block;
+      margin: 4px 0 22px;
+      padding: 12px 20px;
+      border: 2px dashed #d3994c;
+      border-radius: 16px;
+      color: #6b401f;
+      background: #fff4d8;
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .bonus-round {
+      max-width: 560px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .bonus-round > p:not(.question-kicker) {
+      margin: -7px auto 16px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .arcade-score {
+      display: inline-block;
+      margin: 0 0 11px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      color: #63431d;
+      background: #fff0c8;
+      font-weight: 900;
+    }
+
+    .arcade-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 3px solid #765038;
+      border-radius: 16px;
+      background: #e7f0dc;
+      box-shadow: 0 5px 0 #76503824;
+      touch-action: manipulation;
+    }
+
+    .arcade-canvas:focus-visible {
+      outline: 3px solid #245f79;
+      outline-offset: 4px;
+    }
+
+    .arcade-status {
+      min-height: 28px;
+      margin: 13px 0;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .arcade-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .footer {
+      margin: 20px 8px 0;
+      color: #674a37;
+      font-size: .79rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 16px 11px 28px; }
+      .hero { padding: 27px 18px 23px; }
+      .hero::before, .hero::after { top: 12px; font-size: 1.5rem; }
+      .content { padding-top: 22px; padding-bottom: 25px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topline">
+      <span>🍁 A classroom game</span>
+      <span class="season-tag">Thanksgiving edition</span>
+    </div>
+
+    <section class="card" aria-labelledby="page-title">
+      <header class="hero">
+        <p class="turkey" aria-hidden="true">🦃</p>
+        <h1 id="page-title">Gobble &amp; Guess!</h1>
+        <p class="subtitle">The Thanksgiving Movie Challenge</p>
+      </header>
+
+      <div class="content">
+        <section class="intro" id="start-screen">
+          <p>
+            Get ready for a cozy movie-night quiz! Answer questions inspired by
+            Thanksgiving favorites and holiday traditions. How many can you get right?
+          </p>
+          <div class="movie-pills" aria-label="Featured movie references">
+            <span class="movie-pill">A Charlie Brown Thanksgiving</span>
+            <span class="movie-pill">Free Birds</span>
+            <span class="movie-pill">Garfield's Thanksgiving</span>
+          </div>
+          <button class="primary" id="start-button" type="button">Start the challenge <span aria-hidden="true">→</span></button>
+        </section>
+
+        <section id="game-screen" hidden aria-live="polite">
+          <div class="game-top">
+            <span id="question-count">Question 1 of 8</span>
+            <span class="score-badge" id="score">⭐ 0 points</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="question-kicker" id="question-category">Movie moment</p>
+          <h2 id="question-text"></h2>
+          <div class="answers" id="answers"></div>
+          <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+          <div class="game-actions">
+            <button class="primary" id="next-button" type="button" hidden>Next question <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+
+        <section class="result" id="result-screen" hidden aria-live="polite">
+          <p class="result-emoji" id="result-emoji" aria-hidden="true">🍂</p>
+          <h2 id="result-title">What a great run!</h2>
+          <p class="result-copy" id="result-copy"></p>
+          <div class="result-score" id="final-score"></div>
+          <div class="result-actions">
+            <button class="primary" id="play-turkey-button" type="button">Bonus round: Turkey's Great Escape! <span aria-hidden="true">→</span></button>
+            <button class="secondary" id="play-again-button" type="button">Play quiz again <span aria-hidden="true">↻</span></button>
+          </div>
+        </section>
+
+        <section class="bonus-round" id="arcade-screen" hidden aria-labelledby="arcade-title">
+          <p class="question-kicker">Bonus round</p>
+          <h2 id="arcade-title">Turkey's Great Escape!</h2>
+          <p>
+            Help the turkey flap through the kitchen! Dodge giant basters and ovens
+            while making a daring dash for the leftovers.
+          </p>
+          <p class="arcade-score" id="flight-score">Gaps cleared: 0</p>
+          <canvas
+            class="arcade-canvas"
+            id="turkey-canvas"
+            width="720"
+            height="390"
+            tabindex="0"
+            role="img"
+            aria-label="A cartoon turkey flying through a kitchen. Avoid the obstacles by flapping."
+          >A turkey flies through a kitchen while avoiding obstacles.</canvas>
+          <p class="arcade-status" id="arcade-status" role="status" aria-live="polite">
+            Press Start, then tap, click, press Space, or press Up Arrow to flap.
+          </p>
+          <div class="arcade-actions">
+            <button class="primary" id="start-flight-button" type="button">Start the escape! 🦃</button>
+            <button class="secondary" id="back-to-results-button" type="button">Back to quiz score</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <p class="footer">
+      Movie titles are included as references for this classroom quiz. This is a fan-made educational activity and is not affiliated with the films or their creators.
+    </p>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        category: "Peanuts movie moment",
+        question: "In A Charlie Brown Thanksgiving, what unusual foods does Snoopy serve at the backyard feast?",
+        answers: [
+          "Toast, popcorn, pretzel sticks, and jelly beans",
+          "Pizza, tacos, and ice cream",
+          "Pancakes, soup, and cupcakes",
+          "Only mashed potatoes"
+        ],
+        correct: 0,
+        explanation: "That's the famously unusual menu Snoopy and Woodstock put together!"
+      },
+      {
+        category: "Animated adventure",
+        question: "In Free Birds, what do two turkeys set out to do?",
+        answers: [
+          "Enter a pie-baking contest",
+          "Travel back in time and change the Thanksgiving menu",
+          "Find a lost parade balloon",
+          "Open a farm animal school"
+        ],
+        correct: 1,
+        explanation: "The turkeys travel back in time in an effort to change the holiday tradition."
+      },
+      {
+        category: "Movie match",
+        question: "Which movie title belongs to the Peanuts gang's Thanksgiving special?",
+        answers: [
+          "A Charlie Brown Thanksgiving",
+          "A Woodstock Winter",
+          "Snoopy's Summer Picnic",
+          "The Great Pumpkin Parade"
+        ],
+        correct: 0,
+        explanation: "A Charlie Brown Thanksgiving brings the Peanuts characters together for the holiday."
+      },
+      {
+        category: "Holiday traditions",
+        question: "Which activity is a popular Thanksgiving tradition in many families?",
+        answers: [
+          "Sharing something you're thankful for",
+          "Hiding all the dinner plates",
+          "Building a snow fort indoors",
+          "Wrapping every chair as a present"
+        ],
+        correct: 0,
+        explanation: "Many people take time to share what they appreciate."
+      },
+      {
+        category: "Thanksgiving table",
+        question: "Which of these is a classic Thanksgiving side dish?",
+        answers: [
+          "Mashed potatoes",
+          "Watermelon popsicles",
+          "Cereal with marshmallows",
+          "Birthday cake"
+        ],
+        correct: 0,
+        explanation: "Mashed potatoes are a favorite side at many Thanksgiving meals."
+      },
+      {
+        category: "Garfield's Thanksgiving",
+        question: "Which famous orange cat stars in Garfield's Thanksgiving?",
+        answers: [
+          "Garfield",
+          "Puss in Boots",
+          "The Cat in the Hat",
+          "Cheshire Cat"
+        ],
+        correct: 0,
+        explanation: "It's Garfield, the lasagna-loving cat!"
+      },
+      {
+        category: "Movie night",
+        question: "Which of these is the title of a Thanksgiving-themed animated movie about turkeys?",
+        answers: [
+          "Free Birds",
+          "Cloudy with a Chance of Meatballs",
+          "Finding Nemo",
+          "The Incredibles"
+        ],
+        correct: 0,
+        explanation: "Free Birds is an animated comedy adventure featuring two turkeys."
+      },
+      {
+        category: "Kindness counts",
+        question: "A friend is new to your Thanksgiving game. What's a thoughtful thing to do?",
+        answers: [
+          "Invite them to join your team",
+          "Keep all the clues secret",
+          "Tell them they can't play",
+          "Take their turn for them"
+        ],
+        correct: 0,
+        explanation: "Including someone new is a great way to show gratitude and kindness."
+      }
+    ];
+
+    const startScreen = document.getElementById("start-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const resultScreen = document.getElementById("result-screen");
+    const questionCount = document.getElementById("question-count");
+    const scoreDisplay = document.getElementById("score");
+    const progressTrack = document.querySelector(".progress-track");
+    const progressFill = document.getElementById("progress-fill");
+    const categoryDisplay = document.getElementById("question-category");
+    const questionDisplay = document.getElementById("question-text");
+    const answersDisplay = document.getElementById("answers");
+    const feedbackDisplay = document.getElementById("feedback");
+    const nextButton = document.getElementById("next-button");
+    const arcadeScreen = document.getElementById("arcade-screen");
+    const canvas = document.getElementById("turkey-canvas");
+    const ctx = canvas.getContext("2d");
+    const flightScoreDisplay = document.getElementById("flight-score");
+    const arcadeStatus = document.getElementById("arcade-status");
+    const startFlightButton = document.getElementById("start-flight-button");
+    let flightRunning = false;
+    let flightScore = 0;
+    let turkeyY = 190;
+    let turkeyVelocity = 0;
+    let obstacles = [];
+    let lastFrameTime = 0;
+    let frameId = 0;
+    let order = [];
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    function shuffle(items) {
+      const shuffled = items.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `⭐ ${score} ${score === 1 ? "point" : "points"}`;
+    }
+
+    function showQuestion() {
+      answered = false;
+      const question = questions[order[currentIndex]];
+      questionCount.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+      progressFill.style.width = `${(currentIndex / questions.length) * 100}%`;
+      progressTrack.setAttribute("aria-valuenow", currentIndex);
+      categoryDisplay.textContent = question.category;
+      questionDisplay.textContent = question.question;
+      feedbackDisplay.textContent = "";
+      feedbackDisplay.className = "feedback";
+      nextButton.hidden = true;
+      answersDisplay.replaceChildren();
+
+      question.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        button.textContent = answer;
+        button.addEventListener("click", () => chooseAnswer(index));
+        answersDisplay.appendChild(button);
+      });
+    }
+
+    function chooseAnswer(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      const question = questions[order[currentIndex]];
+      const buttons = answersDisplay.querySelectorAll(".answer");
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === question.correct) button.classList.add("correct");
+      });
+
+      if (selectedIndex === question.correct) {
+        score++;
+        feedbackDisplay.textContent = `Correct! ${question.explanation}`;
+        feedbackDisplay.classList.add("good");
+      } else {
+        buttons[selectedIndex].classList.add("incorrect");
+        feedbackDisplay.textContent = `Good try! ${question.explanation}`;
+        feedbackDisplay.classList.add("try-again");
+      }
+      updateScore();
+      nextButton.hidden = false;
+      nextButton.textContent = currentIndex === questions.length - 1 ? "See my score →" : "Next question →";
+      nextButton.focus();
+    }
+
+    function showResults() {
+      gameScreen.hidden = true;
+      resultScreen.hidden = false;
+      arcadeScreen.hidden = true;
+      progressFill.style.width = "100%";
+      progressTrack.setAttribute("aria-valuenow", questions.length);
+      document.getElementById("final-score").textContent = `${score} out of ${questions.length} correct`;
+
+      let title = "Thanks for playing!";
+      let copy = "You brought great energy to the Thanksgiving Movie Challenge. Pick a favorite movie and share what makes it fun!";
+      let emoji = "🍂";
+      if (score === questions.length) {
+        title = "Turkey-tastic! Perfect score!";
+        copy = "You know your Thanksgiving movies and traditions! Share your movie-night expertise with a friend.";
+        emoji = "🏆";
+      } else if (score >= 5) {
+        title = "Gobble-worthy score!";
+        copy = "You know a lot about holiday movies and traditions. Maybe it's time for a cozy movie night!";
+        emoji = "🌟";
+      } else if (score >= 2) {
+        title = "Nice work, movie fan!";
+        copy = "You picked up some fun Thanksgiving facts. Play again and see if you can beat your score!";
+        emoji = "🍁";
+      }
+      document.getElementById("result-title").textContent = title;
+      document.getElementById("result-copy").textContent = copy;
+      document.getElementById("result-emoji").textContent = emoji;
+      document.getElementById("play-turkey-button").focus();
+    }
+
+    function startGame() {
+      stopFlight();
+      score = 0;
+      currentIndex = 0;
+      order = shuffle(questions.map((_, index) => index));
+      updateScore();
+      startScreen.hidden = true;
+      resultScreen.hidden = true;
+      arcadeScreen.hidden = true;
+      gameScreen.hidden = false;
+      showQuestion();
+      answersDisplay.querySelector("button").focus();
+    }
+
+    function makeObstacle(x) {
+      const gapSize = 158;
+      const gapTop = 42 + Math.random() * (canvas.height - gapSize - 84);
+      return {
+        x,
+        width: 82,
+        gapTop,
+        gapBottom: gapTop + gapSize,
+        kind: Math.random() < 0.5 ? "BASTER" : "HOT OVEN",
+        passed: false
+      };
+    }
+
+    function drawTurkey() {
+      ctx.save();
+      ctx.translate(132, turkeyY);
+      ctx.rotate(Math.max(-0.25, Math.min(0.35, turkeyVelocity * 0.04)));
+
+      ctx.fillStyle = "#b94f35";
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.ellipse(-22 - i * 3, -11 + i * 6, 14, 8, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#956039";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 23, 17, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e9c398";
+      ctx.beginPath();
+      ctx.ellipse(-4, 5, 12, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#956039";
+      ctx.beginPath();
+      ctx.arc(16, -14, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(20, -17, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#292019";
+      ctx.beginPath();
+      ctx.arc(21, -17, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f4b83f";
+      ctx.beginPath();
+      ctx.moveTo(27, -13);
+      ctx.lineTo(39, -9);
+      ctx.lineTo(27, -5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#c84938";
+      ctx.beginPath();
+      ctx.ellipse(17, -1, 4, 7, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#68452c";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-2, 14);
+      ctx.lineTo(-2, 21);
+      ctx.moveTo(10, 14);
+      ctx.lineTo(10, 21);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawObstacle(obstacle) {
+      const x = obstacle.x;
+      const w = obstacle.width;
+      const gapTop = obstacle.gapTop;
+      const gapBottom = obstacle.gapBottom;
+      const isOven = obstacle.kind === "HOT OVEN";
+      const fill = isOven ? "#65737b" : "#c77b36";
+      const trim = isOven ? "#394b53" : "#81502e";
+
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = trim;
+      ctx.lineWidth = 4;
+      ctx.fillRect(x, 0, w, gapTop);
+      ctx.strokeRect(x, -2, w, gapTop + 2);
+      ctx.fillRect(x, gapBottom, w, canvas.height - gapBottom);
+      ctx.strokeRect(x, gapBottom, w, canvas.height - gapBottom + 2);
+
+      if (isOven) {
+        ctx.fillStyle = "#d8e0de";
+        ctx.fillRect(x + 13, Math.max(12, gapTop - 48), w - 26, 22);
+        ctx.fillRect(x + 13, gapBottom + 13, w - 26, Math.min(25, canvas.height - gapBottom - 22));
+        ctx.fillStyle = "#e6ae4b";
+        ctx.beginPath();
+        ctx.arc(x + 25, Math.max(9, gapTop - 58), 4, 0, Math.PI * 2);
+        ctx.arc(x + 57, Math.max(9, gapTop - 58), 4, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = "#e7b65f";
+        ctx.fillRect(x + 31, 0, 20, Math.max(12, gapTop - 14));
+        ctx.fillRect(x + 31, gapBottom + 14, 20, Math.max(12, canvas.height - gapBottom - 14));
+        ctx.fillStyle = "#f2d594";
+        ctx.beginPath();
+        ctx.ellipse(x + 41, Math.max(12, gapTop - 8), 18, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 41, Math.min(canvas.height - 12, gapBottom + 8), 18, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = isOven ? "#f8e1ae" : "#fff3d4";
+      ctx.font = "bold 11px Trebuchet MS, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = gapTop > 45 ? "bottom" : "top";
+      ctx.fillText(obstacle.kind, x + w / 2, gapTop > 45 ? gapTop - 6 : 8, w - 8);
+      ctx.textBaseline = gapBottom + 30 < canvas.height ? "top" : "bottom";
+      ctx.fillText(obstacle.kind, x + w / 2, gapBottom + 6 < canvas.height ? gapBottom + 6 : canvas.height - 7, w - 8);
+    }
+
+    function drawScene() {
+      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      sky.addColorStop(0, "#e5f1df");
+      sky.addColorStop(1, "#fff0d6");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#c8dfd3";
+      ctx.fillRect(24, 28, 180, 95);
+      ctx.strokeStyle = "#fffaf0";
+      ctx.lineWidth = 9;
+      ctx.strokeRect(24, 28, 180, 95);
+      ctx.beginPath();
+      ctx.moveTo(114, 28);
+      ctx.lineTo(114, 123);
+      ctx.moveTo(24, 75);
+      ctx.lineTo(204, 75);
+      ctx.stroke();
+
+      ctx.fillStyle = "#d2a66f";
+      ctx.fillRect(0, canvas.height - 24, canvas.width, 24);
+      ctx.fillStyle = "#f1d7b0";
+      ctx.fillRect(0, canvas.height - 28, canvas.width, 5);
+
+      obstacles.forEach(drawObstacle);
+      drawTurkey();
+
+      ctx.fillStyle = "#765038";
+      ctx.font = "bold 14px Trebuchet MS, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("TURKEY TAKEOFF", 18, 14);
+    }
+
+    function setFlightScore() {
+      flightScoreDisplay.textContent = `Gaps cleared: ${flightScore}`;
+    }
+
+    function flap() {
+      if (!flightRunning) return;
+      turkeyVelocity = -5.3;
+    }
+
+    function finishFlight(message) {
+      flightRunning = false;
+      arcadeStatus.textContent = message;
+      startFlightButton.textContent = "Try another escape! 🦃";
+      drawScene();
+      ctx.fillStyle = "#33251dcc";
+      ctx.fillRect(0, canvas.height / 2 - 43, canvas.width, 86);
+      ctx.fillStyle = "#fff8e9";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 25px Georgia, serif";
+      ctx.fillText("Kitchen close call!", canvas.width / 2, canvas.height / 2 - 12);
+      ctx.font = "bold 15px Trebuchet MS, sans-serif";
+      ctx.fillText("The turkey is fine. The leftovers are still up for grabs!", canvas.width / 2, canvas.height / 2 + 19);
+    }
+
+    function updateFlight(delta) {
+      const step = Math.min(delta / 16.67, 2);
+      turkeyVelocity += 0.28 * step;
+      turkeyY += turkeyVelocity * step;
+
+      obstacles.forEach(obstacle => {
+        obstacle.x -= 2.8 * step;
+        if (!obstacle.passed && obstacle.x + obstacle.width < 132) {
+          obstacle.passed = true;
+          flightScore++;
+          setFlightScore();
+        }
+      });
+      obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > -5);
+      if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 285) {
+        obstacles.push(makeObstacle(canvas.width + 20));
+      }
+
+      if (turkeyY - 15 < 0 || turkeyY + 18 > canvas.height - 28) {
+        finishFlight("The turkey bonked a wall. No turkeys or leftovers were harmed!");
+        return;
+      }
+
+      for (const obstacle of obstacles) {
+        const overlapsX = 132 + 22 > obstacle.x && 132 - 22 < obstacle.x + obstacle.width;
+        const outsideGap = turkeyY - 14 < obstacle.gapTop || turkeyY + 14 > obstacle.gapBottom;
+        if (overlapsX && outsideGap) {
+          finishFlight("A close call with the kitchen gear! No turkeys or leftovers were harmed.");
+          return;
+        }
+      }
+      drawScene();
+    }
+
+    function flightFrame(timestamp) {
+      if (!flightRunning) return;
+      const delta = lastFrameTime ? timestamp - lastFrameTime : 16.67;
+      lastFrameTime = timestamp;
+      updateFlight(delta);
+      if (flightRunning) frameId = requestAnimationFrame(flightFrame);
+    }
+
+    function stopFlight() {
+      flightRunning = false;
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function startFlight() {
+      stopFlight();
+      flightScore = 0;
+      turkeyY = canvas.height / 2;
+      turkeyVelocity = 0;
+      obstacles = [makeObstacle(canvas.width + 170)];
+      lastFrameTime = 0;
+      setFlightScore();
+      arcadeStatus.textContent = "Flap past the kitchen gear and chase those leftovers!";
+      startFlightButton.textContent = "Restart flight 🦃";
+      flightRunning = true;
+      flap();
+      canvas.focus();
+      frameId = requestAnimationFrame(flightFrame);
+    }
+
+    function showArcade() {
+      resultScreen.hidden = true;
+      arcadeScreen.hidden = false;
+      flightScore = 0;
+      turkeyY = canvas.height / 2;
+      turkeyVelocity = 0;
+      obstacles = [makeObstacle(canvas.width + 170)];
+      setFlightScore();
+      startFlightButton.textContent = "Start the escape! 🦃";
+      arcadeStatus.textContent = "Press Start, then tap, click, press Space, or press Up Arrow to flap.";
+      drawScene();
+      startFlightButton.focus();
+    }
+
+    document.getElementById("start-button").addEventListener("click", startGame);
+    document.getElementById("play-again-button").addEventListener("click", startGame);
+    document.getElementById("play-turkey-button").addEventListener("click", showArcade);
+    document.getElementById("back-to-results-button").addEventListener("click", () => {
+      stopFlight();
+      arcadeScreen.hidden = true;
+      resultScreen.hidden = false;
+      document.getElementById("play-turkey-button").focus();
+    });
+    startFlightButton.addEventListener("click", startFlight);
+    canvas.addEventListener("pointerdown", event => {
+      if (flightRunning) {
+        event.preventDefault();
+        flap();
+      }
+    });
+    document.addEventListener("keydown", event => {
+      if (!arcadeScreen.hidden && flightRunning && (event.code === "Space" || event.code === "ArrowUp")) {
+        event.preventDefault();
+        flap();
+      }
+    });
+    nextButton.addEventListener("click", () => {
+      currentIndex++;
+      if (currentIndex === questions.length) {
+        showResults();
+      } else {
+        showQuestion();
+        answersDisplay.querySelector("button").focus();
+      }
+    });
+  </script>
+</body>
+</html>
